@@ -8,7 +8,8 @@
 
 using namespace std;
 
-struct Automaton {
+class Automaton {
+public:
     set<string> alphabet;
     set<string> states;
     map<pair<string, string>, set<string>> transitions;
@@ -330,24 +331,38 @@ struct Automaton {
         set<string> Q;
         const set<string>& Sigma = alphabet;
         map<pair<string, string>, set<string>> delta;
-        const string& q0 = starterState;
+        
+        string q0_afd_name = starterState; 
+        
         set<string> F;
 
         queue<set<string>> states_to_process;
-        states_to_process.push({q0});
+        set<string> q0_subset = {starterState};
 
-        if(finalStates.count(q0)){
-            F.insert(q0);
+        states_to_process.push(q0_subset);
+
+        Q.insert(q0_afd_name); 
+
+        if(finalStates.count(starterState)){
+            F.insert(q0_afd_name);
         }
 
         while(!states_to_process.empty()){
-            const set<string>& currentSet = states_to_process.front();
+            const set<string> currentSet = states_to_process.front(); 
             states_to_process.pop();
+            
             string stateName = "";
             
+            bool first = true; 
             for(const string& currentState : currentSet){
+                if (!first) {
+                    stateName += "_";
+                }
                 stateName += currentState;
+                first = false;
             }
+
+            Q.insert(stateName);
             
             for (const string& symbol : alphabet) {
                 set<string> nextStates;
@@ -370,61 +385,269 @@ struct Automaton {
                     pair<string, string> key = {stateName, symbol};
                     delta[key] = {newState_name}; 
                         
-                        if (Q.find(newState_name) == Q.end()) {
-                            Q.insert(newState_name);
-                            states_to_process.push(nextStates); 
-        
-                            
-                            for(const string& state : nextStates){
-                                if (finalStates.count(state)) {
-                                    F.insert(newState_name);
-                                    break;
-                                }
+                    if (Q.find(newState_name) == Q.end()) {
+                        Q.insert(newState_name);
+                        states_to_process.push(nextStates); 
+                        
+                        for(const string& state : nextStates){
+                            if (finalStates.count(state)) {
+                                F.insert(newState_name);
+                                break;
                             }
                         }
                     }
                 }
             }
+        }
 
-       
+        Automaton automaton(Q, Sigma, delta, q0_afd_name, F);
+        return automaton;
+    }
+    
+    Automaton minimize(){
+        if(automaton_type() == "afn" || automaton_type() == "afn_epsilon"){
+            throw runtime_error("The automaton type is wrong, isen't a AFD");
+        }
+
+        set<string> reachableStates = closure({starterState});
+        map<pair<string, string>, bool> keys;
+
+        for(const string& stateOne : reachableStates){
+            for(const string& stateTwo : reachableStates) {
+                if(stateOne < stateTwo){
+                    pair<string, string> key = {stateOne, stateTwo};
+                    
+                    bool one_is_final = finalStates.count(stateOne) > 0;
+                    bool two_is_final = finalStates.count(stateTwo) > 0;
+
+                    if(one_is_final != two_is_final){
+                        keys[key] = true;
+                    }else{
+                        keys[key] = false;
+                    }
+                }
+            }
+        }
+
+        bool change;
+
+        do {
+            change = false;
+
+            for(auto& key : keys){
+                const string& p = key.first.first;
+                const string& q = key.first.second;
+
+                if(key.second){
+                    continue; 
+                } 
+
+                for(const string& symbol : alphabet){
+                    pair<string,string> pKey = {p, symbol};
+                    pair<string,string> qKey = {q, symbol};
+
+                    auto itP = transitions.find(pKey);
+                    auto itQ = transitions.find(qKey);
+
+                    if(itP == transitions.end() || itQ == transitions.end()){
+                        continue;
+                    } 
+
+                    const set<string>& pNextStates = itP->second;
+                    const set<string>& qNextStates = itQ->second;
+
+                    bool shouldMark = false;
+
+                    for(const string& pNext : pNextStates){
+                        for(const string& qNext : qNextStates){
+                            if(pNext == qNext) continue;
+
+                            pair<string,string> next = (pNext < qNext) ? make_pair(pNext, qNext) : make_pair(qNext, pNext);
+
+                            if(keys[next]){ 
+                                shouldMark = true;
+                                break;
+                            }
+                        }
+                        if(shouldMark) break;
+                    }
+
+                    if(shouldMark){
+                        keys[key.first] = true;
+                        change = true;
+                        break; 
+                    }
+                }
+            }
+
+        } while(change);
+
+        map<string, string> charges;
+
+        for(const string& state : reachableStates){
+            charges[state] = state;
+        }
+
+        for(const auto& key : keys){
+            if(!key.second){ 
+                const string& firstState = key.first.first;
+                const string& secondState = key.first.second;
+
+                string minor = min(charges[firstState], charges[secondState]);
+                charges[firstState] = minor;
+                charges[secondState] = minor;
+            }
+        }
+
+        set<string> Q;
+        const set<string>& Sigma = alphabet;
+        map<pair<string, string>, set<string>> delta;
+        const string& q0 = charges[starterState];
+        set<string> F;
+
+
+        for(const auto& charge : charges){
+            Q.insert(charge.second);   
+        }
+
+        for(const auto& transition : transitions){
+            const string& oldState = transition.first.first;
+            const string& symbol = transition.first.second;
+            
+            for(const string& state : transition.second){
+                const string& newFromState = charges[oldState];
+                const string& newToState = charges[state];
+
+                delta[{newFromState, symbol}] = {newToState};
+            }
+        }
+
+        for(const string& state : finalStates){
+            F.insert(charges[state]);
+        }
+
         Automaton automaton(Q, Sigma, delta, q0, F);
         return automaton;
     }
-    
-    Automaton minimize(Automaton automaton){
+
+    Automaton minimize_hopcrof_moore_algorithm() {
+        set<string> reachableStates = closure({starterState}); 
+        
+        set<set<string>> currentPartition;
+        set<set<string>> nextPartition;
+
+        set<string> acceptableStates;
+        set<string> unacceptableStates;
+        
+        for (const string& state : reachableStates) {
+            if (finalStates.count(state)) {
+                acceptableStates.insert(state);
+            } else {
+                unacceptableStates.insert(state);
+            }
+        }
+
+        if (!acceptableStates.empty()){
+            currentPartition.insert(acceptableStates);
+        } 
+        if (!unacceptableStates.empty()){
+            currentPartition.insert(unacceptableStates);
+        } 
+        
+        bool changed = true;
+        while (changed) {
+            changed = false;
+            nextPartition.clear();
+
+            for (const set<string>& currentBlock : currentPartition) {
+                
+                map<vector<string>, set<string>> subBlockMap;
+
+                for (const string& state : currentBlock) {
+                    
+                    vector<string> transitionPattern;
+                    for (const string& symbol : alphabet) {
+                        
+                        set<string> destinationSet = transitions.count({state, symbol}) ? transitions.at({state, symbol}) : set<string>{};
+                        string destinationState = destinationSet.empty() ? "TRASH" : *(destinationSet.begin());
+                        
+                        if (destinationState != "TRASH" && !reachableStates.count(destinationState)) {
+                            destinationState = "TRASH";
+                        }
+                        
+                        string destinationBlockRep = "TRASH"; 
+                        if (destinationState != "TRASH") {
+                            for (const set<string>& block : currentPartition) {
+                                if (block.count(destinationState)) {
+                                    destinationBlockRep = *(block.begin()); 
+                                    break;
+                                }
+                            }
+                        }
+                        transitionPattern.push_back(destinationBlockRep);
+                    }
+
+                    subBlockMap[transitionPattern].insert(state);
+                }
+
+                for (const auto& pair : subBlockMap) {
+                    nextPartition.insert(pair.second);
+                    if (pair.second.size() < currentBlock.size()) {
+                        changed = true;
+                    }
+                }
+            }
+
+            currentPartition = nextPartition;
+        } 
+
+        set<string> Q;
+        string q0;
+        set<string> F;
+        map<pair<string, string>, set<string>> delta;
+
+        map<string, string> stateToNewName; 
+        int blockCounter = 0;
+
+        for (const set<string>& block : currentPartition) {
+            string stateName = "qMin" + to_string(blockCounter++);
+            string representative = *(block.begin());
+            
+            Q.insert(stateName);
+            
+            for (const string& state : block) {
+                stateToNewName[state] = stateName;
+            }
+
+            if (block.count(starterState)) {
+                q0 = stateName;
+            }
+            
+            if (finalStates.count(representative)) {
+                F.insert(stateName);
+            }
+        }
+
+        for (const set<string>& block : currentPartition) {
+            string currentState = stateToNewName[*(block.begin())];
+            string representative = *(block.begin());
+
+            for (const string& symbol : alphabet) {
+                set<string> destSet = transitions.count({representative, symbol}) ? transitions.at({representative, symbol}) : set<string>{};
+                string destOrig = destSet.empty() ? "" : *(destSet.begin());
+
+                if (stateToNewName.count(destOrig)) {
+                    string destState = stateToNewName[destOrig];
+                    delta[{currentState, symbol}] = {destState};
+                }
+            }
+        }
+
+        Automaton automaton(Q, alphabet, delta, q0, F);
+
         return automaton;
     }
+    
 };
 
-int main()
-{
-    cout << "Simulação de Autômato Finito Não-Determinístico (AFN)\n\n";
-    
-    set<string> Q = {"q0", "q1", "q2", "q3", "q4"};
-    set<string> Sigma = {"a", "b"};
-    string q0 = "q0";
-    set<string> F = {"q0"};
-    
-    Automaton afn(Q, Sigma, q0, F);
-    
-    afn.add_transition("q0", "a", {"q1"});
-    afn.add_transition("q0", "b", {"q3"});
-    afn.add_transition("q1", "a", {"q2"});
-    afn.add_transition("q3", "b", {"q4"});
-    afn.add_transition("q1", "b", {"q0"});
-    afn.add_transition("q2", "b", {"q1"});
-    afn.add_transition("q3", "a", {"q0"});
-    afn.add_transition("q4", "a", {"q3"});
-    
-    vector<string> testWords = {"baba", "a", "b", "aba", "bab", "abb", "ab", "", "babababababababbaaba"};
-    
-    cout << "Testando palavras:\n";
-    for (const string& word : testWords) {
-        string status = afn.verify_word(word) ? "ACEITA" : "REJEITADA";
-        cout << "Palavra: \"" << word << "\" -> " << status << "\n";
-    }
-    
-    cout <<" Esse automato é: " << afn.automaton_type() << "\n";
-    
-    return 0;
-}
+
