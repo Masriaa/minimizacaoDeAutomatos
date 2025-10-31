@@ -60,4 +60,4 @@ Linux:
 ./output/main
 ```
 
-##### Para mais informações, você pode acessar a nossa documentação
+##### Para mais informações, você pode acessar a nossa [documentação](https://pt.overleaf.com/read/gpsfvzxnvffj#76c7dd)
