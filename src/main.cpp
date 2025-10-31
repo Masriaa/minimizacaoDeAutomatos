@@ -6,8 +6,10 @@
 using namespace std;
 
 int main() {
-    Automaton afd;
+    // Tipo de autômato
+    Automaton afn_epsilon;
 
+    // Estados
     afd.add_state("q0");
     afd.add_state("q1");
     afd.add_state("q5");
@@ -15,12 +17,15 @@ int main() {
     afd.add_state("q2");
     afd.add_state("q3");
 
+    // Estados Iniciais
     afd.add_alphabet_symbol("0");
     afd.add_alphabet_symbol("1");
 
+    // Estados Finais
     afd.set_stater_state("q0");
     afd.add_final_state("q0");
 
+    // Transições
     afd.add_transition("q0", "0", {"q1"});
     afd.add_transition("q0", "1", {"q2"});
     afd.add_transition("q1", "0", {"q0"});
@@ -30,8 +35,10 @@ int main() {
     afd.add_transition("q3", "0", {"q2"});
     afd.add_transition("q3", "1", {"q1"});
 
+    // Testes de palavras
     vector<string> palavras = {"", "0", "1", "00", "11", "010", "101", "0011", "1100"};
 
+    // As saídas abaixo não devem ser modificadas
     cout << "Teste antes da minimizacao:\n";
     for (const auto& w : palavras) {
         cout << w << " -> " << (afd.verify_word(w) ? "ACEITA" : "REJEITA") << endl;
