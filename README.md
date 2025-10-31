@@ -22,6 +22,8 @@ A classe Automaton implementa as seguintes operações:
 |-- include/
 |   |-- automaton.h        (Definição da classe)
 |
+|-- output/  (Pasta vazia destinada aos arquivos .exe)
+|
 |-- src/
 |   |-- automaton.cpp      (Implementação da classe)
 |   |-- main.cpp           (Programa principal que usa a classe)
