@@ -17,7 +17,7 @@ int main() {
     afd.add_state("q2");
     afd.add_state("q3");
 
-    // Estados Iniciais
+    // Simbolos do Alfabeto
     afd.add_alphabet_symbol("0");
     afd.add_alphabet_symbol("1");
 
