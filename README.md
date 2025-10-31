@@ -41,6 +41,9 @@
 git clone https://github.com/Masriaa/minimizacaoDeAutomatos.git
 ```
 #### 2. Abra seu terminal (PowerShell, Bash, etc.) e navegue até a pasta raiz do projeto.
+```
+cd minimizacaoDeAutomatos
+```
 #### 3. Execute o seguinte comando para compilar o projeto:
 ```
 g++ src/main.cpp src/automaton.cpp -o output/main.exe -Iinclude -std=c++11
