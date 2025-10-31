@@ -47,7 +47,12 @@ g++ src/main.cpp src/automaton.cpp -o output/main.exe -Iinclude -std=c++11
 ```
 #### 4. Após o comando terminar sem erros, o seu main.exe estará pronto. Para executá-lo, rode:
 ```
+Windows:
 .\output\main.exe
+```
+```
+Linux:
+./output/main
 ```
 
 ##### Para mais informações, você pode acessar a nossa documentação
