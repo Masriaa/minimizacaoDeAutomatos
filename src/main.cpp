@@ -5,8 +5,7 @@
 
 using namespace std;
 
-int main()
-{
+int main() {
     Automaton afd;
 
     afd.add_state("q0");
@@ -33,35 +32,30 @@ int main()
 
     vector<string> palavras = {"", "0", "1", "00", "11", "010", "101", "0011", "1100"};
 
-    cout << "Teste antes da minimizacao:" << endl;
-    for (const auto &w : palavras)
-    {
+    cout << "Teste antes da minimizacao:\n";
+    for (const auto& w : palavras) {
         cout << w << " -> " << (afd.verify_word(w) ? "ACEITA" : "REJEITA") << endl;
     }
 
-    Automaton min = afd.minimize(); // Use afd.minimize() ou afd.minimize_hopcrof_moore_algorithm()
+    Automaton min = afd.minimize();
 
-    cout << "\nTeste depois da minimizacao:" << endl;
-    for (const auto &w : palavras)
-    {
+    cout << "\nTeste depois da minimizacao:\n";
+    for (const auto& w : palavras) {
         cout << w << " -> " << (min.verify_word(w) ? "ACEITA" : "REJEITA") << endl;
     }
 
     cout << "\nEstados originais: ";
-    for (auto &s : afd.states)
-        cout << s << " ";
+    for (auto& s : afd.states) cout << s << " ";
     cout << endl;
 
     cout << "Estados minimizados: ";
-    for (auto &s : min.states)
-        cout << s << " ";
+    for (auto& s : min.states) cout << s << " ";
     cout << endl;
 
     cout << "Estado inicial: " << min.starterState << endl;
 
     cout << "Estados finais: ";
-    for (auto &f : min.finalStates)
-        cout << f << " ";
+    for (auto& f : min.finalStates) cout << f << " ";
     cout << endl;
 
     return 0;
