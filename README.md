@@ -37,6 +37,9 @@
 
 ## Como Compilar e Executar:
 #### 1. Clone este repositório para a sua máquina.
+```
+git clone https://github.com/Masriaa/minimizacaoDeAutomatos.git
+```
 #### 2. Abra seu terminal (PowerShell, Bash, etc.) e navegue até a pasta raiz do projeto.
 #### 3. Execute o seguinte comando para compilar o projeto:
 ```
