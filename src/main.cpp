@@ -7,7 +7,7 @@ using namespace std;
 
 int main() {
     // Tipo de autômato
-    Automaton afn_epsilon;
+    Automaton afd;
 
     // Estados
     afd.add_state("q0");
