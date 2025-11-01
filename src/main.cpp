@@ -38,7 +38,7 @@ int main() {
     // Testes de palavras
     vector<string> palavras = {"", "0", "1", "00", "11", "010", "101", "0011", "1100"};
 
-    // As saídas abaixo não devem ser modificadas
+    // Saídas
     cout << "Teste antes da minimizacao:\n";
     for (const auto& w : palavras) {
         cout << w << " -> " << (afd.verify_word(w) ? "ACEITA" : "REJEITA") << endl;
