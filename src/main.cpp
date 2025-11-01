@@ -21,7 +21,7 @@ int main() {
     afd.add_alphabet_symbol("0");
     afd.add_alphabet_symbol("1");
 
-    // Estados Finais
+    // Estados Finais e Iniciais
     afd.set_stater_state("q0");
     afd.add_final_state("q0");
 
