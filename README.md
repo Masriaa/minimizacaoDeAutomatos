@@ -12,6 +12,9 @@ A classe Automaton implementa as seguintes operações:
 * Minimização de AFD:
   - Algoritmo de Preenchimento de Tabela (minimize).
   - Algoritmo de Hopcroft-Moore (minimize_hopcrof_moore_algorithm).
+* Computação de transições
+  - Quantidade de transições vazias (epsilon_closure)
+  - computação "geral" (closure)
 * Identificação do tipo de autômato (automaton_type).
 * Gerenciamento de estados, alfabeto, transições e estados finais.
 
